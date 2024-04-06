@@ -10,6 +10,15 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UserNewPasSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField(read_only=True)
+    current_password = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
