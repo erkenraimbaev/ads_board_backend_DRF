@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 
 from ads.models import Ad, Review
@@ -7,7 +8,7 @@ from ads.permissions import IsAuthor, IsAdmin
 from ads.serializers import AdSerializer, ReviewSerializer, AdDetailSerializer
 
 
-class AdsListView(generics.ListAPIView):
+class AdsListView(generics.ListCreateAPIView):
     """
     Вывести список всех объявлений
     """
@@ -28,7 +29,7 @@ class MyAdsListView(generics.ListAPIView):
         return Ad.objects.filter(author=self.request.user)
 
 
-class AdsDetailView(generics.RetrieveAPIView):
+class AdsDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     Подробнее об объявлении
     """
@@ -46,7 +47,7 @@ class AdsReviewsDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated | IsAuthor | IsAdmin]
 
 
-class AdsCreateView(generics.CreateAPIView):
+class AdsCreateView(generics.ListCreateAPIView):
     """
     Создать объявление
     """
@@ -55,12 +56,12 @@ class AdsCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated, ~IsAdmin]
 
     def perform_create(self, serializer):
-        new_lesson = serializer.save()
-        new_lesson.author = self.request.user
-        new_lesson.save()
+        new_ad = serializer.save()
+        new_ad.author = self.request.user
+        new_ad.save()
 
 
-class AdsUpdateView(generics.UpdateAPIView):
+class AdsUpdateView(generics.RetrieveUpdateDestroyAPIView):
     """
     Обновить объявление
     """
@@ -69,12 +70,12 @@ class AdsUpdateView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated & IsAuthor | IsAdmin]
 
     def perform_update(self, serializer):
-        update_lesson = serializer.save()
-        update_lesson.owner = self.request.user
-        update_lesson.save()
+        update_ad = serializer.save()
+        update_ad.author = self.request.user
+        update_ad.save()
 
 
-class AdsDeleteView(generics.DestroyAPIView):
+class AdsDeleteView(generics.RetrieveUpdateDestroyAPIView):
     """
     Удалить объявление
     """
@@ -86,13 +87,19 @@ class AdsDeleteView(generics.DestroyAPIView):
         super().perform_destroy(instance)
 
 
-class ReviewsDetailAPIView(generics.RetrieveAPIView):
+class ReviewsDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     Побробнее об отзыве
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated | IsAdmin]
+
+    def get_object(self, **kwargs):
+        ad_pk = self.kwargs.get('pk_ad')
+        ad_exist = get_object_or_404(Ad, pk=ad_pk)
+        review_pk = self.kwargs.get('pk')
+        return get_object_or_404(Review, ad=ad_exist, pk=review_pk)
 
 
 class ReviewsCreateAPIView(generics.CreateAPIView):
@@ -104,12 +111,12 @@ class ReviewsCreateAPIView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated | ~IsAdmin]
 
     def perform_create(self, serializer):
-        new_lesson = serializer.save()
-        new_lesson.author = self.request.user
-        new_lesson.save()
+        new_review = serializer.save()
+        new_review.author = self.request.user
+        new_review.save()
 
 
-class ReviewsUpdateAPIView(generics.UpdateAPIView):
+class ReviewsUpdateAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     Обновить отзыв
     """
@@ -117,19 +124,30 @@ class ReviewsUpdateAPIView(generics.UpdateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated & IsAuthor | IsAdmin]
 
+    def get_object(self, **kwargs):
+        ad_pk = self.kwargs.get('pk_ad')
+        ad_exist = get_object_or_404(Ad, pk=ad_pk)
+        review_pk = self.kwargs.get('pk')
+        return get_object_or_404(Review, ad=ad_exist, pk=review_pk)
+
     def perform_update(self, serializer):
-        update_lesson = serializer.save()
-        update_lesson.owner = self.request.user
-        update_lesson.save()
+        update_review = serializer.save()
+        update_review.save()
 
 
-class ReviewsDeleteAPIView(generics.DestroyAPIView):
+class ReviewsDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
     Удалить отзыв
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated & IsAuthor | ~IsAdmin]
+
+    def get_object(self, **kwargs):
+        ad_pk = self.kwargs.get('pk_ad')
+        ad_exist = get_object_or_404(Ad, pk=ad_pk)
+        review_pk = self.kwargs.get('pk')
+        return get_object_or_404(Review, ad=ad_exist, pk=review_pk)
 
     def perform_destroy(self, instance):
         super().perform_destroy(instance)

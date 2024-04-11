@@ -1,4 +1,3 @@
-from django.contrib.auth.hashers import check_password
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
@@ -10,17 +9,26 @@ from users.models import User
 from users.serializers import UserSerializer, MyTokenObtainPairSerializer, UserNewPasSerializer
 
 
-class UserListView(generics.ListAPIView):
+class UserListView(generics.ListCreateAPIView):
+    """
+    Пользователи сервиса
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
 class UserDetailView(generics.RetrieveAPIView):
+    """
+    Посмотреть профиль
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
-class ProfileDetailView(generics.RetrieveAPIView):
+class ProfileDetailView(generics.RetrieveUpdateAPIView):
+    """
+    Посмотреть свой профиль
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -30,33 +38,33 @@ class ProfileDetailView(generics.RetrieveAPIView):
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
+    """
+    Получить токен
+    """
     serializer_class = MyTokenObtainPairSerializer
 
 
-class UserCreateView(generics.CreateAPIView):
+class UserCreateView(generics.ListCreateAPIView):
+    """
+    Создать пользователя
+    """
     serializer_class = UserSerializer
 
-    def post(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            self.create(request, *args, **kwargs)
-
     def perform_create(self, serializer):
-
         user = serializer.save()
         user.set_password(user.password)
         user.save()
 
 
-class UserUpdateView(generics.UpdateAPIView):
+class UserUpdateView(generics.RetrieveUpdateAPIView):
+    """
+    Обновить пользователя
+    """
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-
-    def get_queryset(self):
-        queryset = User.objects.filter(pk=self.request.user)
-        return queryset
 
     def perform_update(self, serializer):
         user = serializer.save()
-        user.set_password(user.password)
         user.save()
 
 
