@@ -1,5 +1,4 @@
 from django.db import models
-from datetime import datetime
 
 
 NULLABLE = {'blank': True, 'null': True}
@@ -13,8 +12,8 @@ class Ad(models.Model):
     price = models.PositiveIntegerField(verbose_name='цена')
     description = models.TextField(verbose_name='описание')
     author = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='ad_owner',
-                               verbose_name='автор')
-    created_at = models.DateTimeField(default=datetime.now, verbose_name='дата')
+                               verbose_name='автор', **NULLABLE)
+    created_at = models.DateTimeField(auto_now=True, verbose_name='дата')
 
     def __str__(self):
         return f'{self.title} цена: {self.description} '
@@ -32,8 +31,8 @@ class Review(models.Model):
     text = models.TextField(verbose_name='текст отзыва')
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE, verbose_name='объявление', related_name='review_ad')
     author = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='review_owner',
-                               verbose_name='автор отзыва')
-    created_at = models.DateTimeField(default=datetime.now(), verbose_name='дата публиувции отзыва')
+                               verbose_name='автор отзыва', **NULLABLE)
+    created_at = models.DateTimeField(auto_now=True, verbose_name='дата публиувции отзыва')
 
     def __str__(self):
         return f'{self.text} {self.author}'

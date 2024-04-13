@@ -5,36 +5,53 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from ads.permissions import IsAuthor
 from users.models import User
 from users.serializers import UserSerializer, MyTokenObtainPairSerializer, UserNewPasSerializer
 
 
-class UserListView(generics.ListCreateAPIView):
+class UserListOrCreateView(generics.ListCreateAPIView):
     """
     Пользователи сервиса
+    или
+    Создать пользователя
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        user.set_password(user.password)
+        user.save()
 
 
 class UserDetailView(generics.RetrieveAPIView):
     """
-    Посмотреть профиль
+    Посмотреть профиль пользователя
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
 
 
-class ProfileDetailView(generics.RetrieveUpdateAPIView):
+class ProfileDetailOrProfileUpdateView(generics.RetrieveUpdateAPIView):
     """
     Посмотреть свой профиль
+    или
+    Обновить свой профиль
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated, IsAuthor]
 
     def get_object(self):
         obj = get_object_or_404(User, pk=self.request.user.pk)
         return obj
+
+    def perform_update(self, serializer):
+        user = serializer.save()
+        user.set_password(user.password)
+        user.save()
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -44,37 +61,14 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
-class UserCreateView(generics.ListCreateAPIView):
-    """
-    Создать пользователя
-    """
-    serializer_class = UserSerializer
-
-    def perform_create(self, serializer):
-        user = serializer.save()
-        user.set_password(user.password)
-        user.save()
-
-
-class UserUpdateView(generics.RetrieveUpdateAPIView):
-    """
-    Обновить пользователя
-    """
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-    def perform_update(self, serializer):
-        user = serializer.save()
-        user.save()
-
-
 class SetPasswordView(APIView):
     """
     Изменить пароль
     """
-    permission_classes = [IsAuthenticated]
+
     queryset = User.objects.all()
     serializer_class = UserNewPasSerializer
+    permission_classes = [IsAuthenticated, IsAuthor]
 
     def post(self, request):
         user = self.request.user

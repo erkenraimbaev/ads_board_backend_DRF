@@ -1,6 +1,7 @@
 from django.contrib import admin
 from ads.models import Ad, Review
 
+
 @admin.register(Ad)
 class AdAdmin(admin.ModelAdmin):
     list_display = ('title', 'price', 'description', 'author', 'created_at',)
