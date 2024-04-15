@@ -16,7 +16,7 @@ class Ad(models.Model):
     created_at = models.DateTimeField(auto_now=True, verbose_name='дата')
 
     def __str__(self):
-        return f'{self.title} цена: {self.description} '
+        return f'{self.title} цена: {self.price} '
 
     class Meta:
         verbose_name = 'объявление'
@@ -35,7 +35,7 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now=True, verbose_name='дата публиувции отзыва')
 
     def __str__(self):
-        return f'{self.text} {self.author}'
+        return f'{self.ad} {self.text}'
 
     class Meta:
         verbose_name = 'отзыв'

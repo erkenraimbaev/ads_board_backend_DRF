@@ -10,10 +10,17 @@ from users.models import User
 from users.serializers import UserSerializer, MyTokenObtainPairSerializer, UserNewPasSerializer
 
 
-class UserListOrCreateView(generics.ListCreateAPIView):
+class UserListView(generics.ListAPIView):
     """
     Пользователи сервиса
-    или
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class UserCreateView(generics.CreateAPIView):
+    """
     Создать пользователя
     """
     queryset = User.objects.all()

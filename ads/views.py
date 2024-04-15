@@ -10,17 +10,23 @@ from ads.serializers import AdSerializer, ReviewSerializer, AdDetailSerializer
 from ads.filters import MyAdsFilter
 
 
-class AdsListOrCreateView(generics.ListCreateAPIView):
+class AdsListView(generics.ListAPIView):
     """
-    Вывести список всех объявлений
-    или
-    Создать новое объявление
+    Вывести список всех объявленийе
     """
     queryset = Ad.objects.all()
     serializer_class = AdSerializer
     pagination_class = AdsPaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = MyAdsFilter
+
+
+class AdsCreateView(generics.CreateAPIView):
+    """
+    Создать объявление
+    """
+    serializer_class = AdSerializer
+    permission_classes = [IsAuthenticated, ~IsAdmin]
 
     def perform_create(self, serializer):
         new_ad = serializer.save()
@@ -40,10 +46,16 @@ class MyAdsListView(generics.ListAPIView):
         return Ad.objects.filter(author=self.request.user)
 
 
-class AdsDetailOrUpdateOrDeleteView(generics.RetrieveUpdateDestroyAPIView):
+class AdsDetailView(generics.RetrieveAPIView):
     """
     Подробнее об объявлении
-    или
+    """
+    queryset = Ad.objects.all()
+    serializer_class = AdSerializer
+
+
+class AdsUpdateOrDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    """
     Обновить объявление
     или
     Удалить объявление
@@ -70,17 +82,30 @@ class AdsReviewsDetailView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated | IsAuthor | IsAdmin]
 
 
-class ReviewsDetailOrUpdateOrDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+class ReviewsDetailAPIView(generics.RetrieveAPIView):
     """
     Побробнее об отзыве
-    или
+    """
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated | IsAdmin]
+
+    def get_object(self, **kwargs):
+        ad_pk = self.kwargs.get('pk_ad')
+        ad_exist = get_object_or_404(Ad, pk=ad_pk)
+        review_pk = self.kwargs.get('pk')
+        return get_object_or_404(Review, ad=ad_exist, pk=review_pk)
+
+
+class ReviewsUpdateOrDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
     Обновить отзыв
     или
     Удалить отзыв
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated | IsAdmin]
+    permission_classes = [IsAuthenticated, IsAuthor | IsAdmin]
 
     def get_object(self, **kwargs):
         ad_pk = self.kwargs.get('pk_ad')
