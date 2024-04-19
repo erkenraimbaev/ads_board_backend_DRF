@@ -54,11 +54,9 @@ class AdsDetailView(generics.RetrieveAPIView):
     serializer_class = AdSerializer
 
 
-class AdsUpdateOrDeleteView(generics.RetrieveUpdateDestroyAPIView):
+class AdsUpdateView(generics.UpdateAPIView):
     """
     Обновить объявление
-    или
-    Удалить объявление
     """
     queryset = Ad.objects.all()
     serializer_class = AdSerializer
@@ -68,6 +66,15 @@ class AdsUpdateOrDeleteView(generics.RetrieveUpdateDestroyAPIView):
         update_ad = serializer.save()
         update_ad.author = self.request.user
         update_ad.save()
+
+
+class AdsDeleteView(generics.DestroyAPIView):
+    """
+    Удалить объявление
+    """
+    queryset = Ad.objects.all()
+    serializer_class = AdSerializer
+    permission_classes = [IsAuthenticated, IsAuthor | IsAdmin]
 
     def perform_destroy(self, instance):
         super().perform_destroy(instance)
@@ -97,11 +104,9 @@ class ReviewsDetailAPIView(generics.RetrieveAPIView):
         return get_object_or_404(Review, ad=ad_exist, pk=review_pk)
 
 
-class ReviewsUpdateOrDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
+class ReviewsUpdateAPIView(generics.UpdateAPIView):
     """
     Обновить отзыв
-    или
-    Удалить отзыв
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -117,6 +122,21 @@ class ReviewsUpdateOrDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
         update_review = serializer.save()
         update_review.author = self.request.user
         update_review.save()
+
+
+class ReviewsDeleteAPIView(generics.DestroyAPIView):
+    """
+    Удалить отзыв
+    """
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthenticated, IsAuthor | IsAdmin]
+
+    def get_object(self, **kwargs):
+        ad_pk = self.kwargs.get('pk_ad')
+        ad_exist = get_object_or_404(Ad, pk=ad_pk)
+        review_pk = self.kwargs.get('pk')
+        return get_object_or_404(Review, ad=ad_exist, pk=review_pk)
 
     def perform_destroy(self, instance):
         super().perform_destroy(instance)
